@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Calculadora de Subredes IPv4 y VLSM · Miguel Ángel Alonso Valhondo</title>
+  <meta name="description" content="Calculadora de subredes IPv4: dirección de red, broadcast, rango de hosts, wildcard y vista binaria; planificación VLSM y división de una red en subredes iguales.">
+  <meta name="author" content="Miguel Ángel Alonso Valhondo">
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Saltar al contenido</a>
+
+  <header class="topbar">
+    <div class="topbar__inner">
+      <a class="topbar__brand" href="https://tu-dominio.netlify.app/"><span class="mark">{ }</span> Calculadora de Subredes</a>
+      <a class="back-link" href="https://github.com/HookMike/calculadora-subredes">Ver código en GitHub</a>
+    </div>
+  </header>
+
+  <main id="main" class="container">
+    <section class="intro">
+      <p class="eyebrow">IPv4 · CIDR · VLSM</p>
+      <h1>Calculadora de subredes</h1>
+      <p class="lead">
+        Calcula la red, el broadcast y el rango de hosts de cualquier dirección IPv4,
+        planifica un direccionamiento VLSM o divide una red en subredes iguales.
+        Todo se calcula en el navegador.
+      </p>
+    </section>
+
+    <div class="tabs-bar">
+      <div class="tabs" role="tablist" aria-label="Herramientas de la calculadora">
+        <button class="tab" type="button" role="tab" id="tab-subred" data-tab="subred"
+                aria-controls="panel-subred" aria-selected="true">
+          <span class="tab__num" aria-hidden="true">01</span>Subred
+        </button>
+        <button class="tab" type="button" role="tab" id="tab-vlsm" data-tab="vlsm"
+                aria-controls="panel-vlsm" aria-selected="false" tabindex="-1">
+          <span class="tab__num" aria-hidden="true">02</span>VLSM
+        </button>
+        <button class="tab" type="button" role="tab" id="tab-dividir" data-tab="dividir"
+                aria-controls="panel-dividir" aria-selected="false" tabindex="-1">
+          <span class="tab__num" aria-hidden="true">03</span>Dividir
+        </button>
+      </div>
+      <button class="btn btn--ghost btn--link" type="button" id="copy-link">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3.2-3.2a4.5 4.5 0 0 0-6.4-6.4L12 5.6"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3.2 3.2a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg>
+        <span class="btn__text">Copiar enlace</span>
+      </button>
+    </div>
+
+    <!-- ============ Pestaña 1: Subred ============ -->
+    <section class="panel" id="panel-subred" role="tabpanel" aria-labelledby="tab-subred">
+      <h2 class="sr-only">Calcular una subred</h2>
+      <form class="card subnet-form" id="subnet-form" novalidate>
+        <div class="field">
+          <label class="field__label" for="subnet-ip">Dirección IP</label>
+          <input class="input input--lg mono" id="subnet-ip" type="text" autocomplete="off"
+                 autocapitalize="off" spellcheck="false" placeholder="192.168.1.10/24"
+                 aria-describedby="subnet-help subnet-error">
+        </div>
+        <div class="field">
+          <label class="field__label" for="subnet-mask">Máscara</label>
+          <select class="input input--lg mono" id="subnet-mask"></select>
+        </div>
+        <p class="field__help" id="subnet-help">
+          Escribe solo la IP y elige la máscara, o todo junto:
+          <code>10.0.0.5/8</code>, <code>10.0.0.5/255.0.0.0</code> o <code>10.0.0.5 255.0.0.0</code>.
+        </p>
+        <p class="field__error" id="subnet-error" aria-live="polite"></p>
+      </form>
+      <div class="results" id="subnet-results"></div>
+    </section>
+
+    <!-- ============ Pestaña 2: VLSM ============ -->
+    <section class="panel" id="panel-vlsm" role="tabpanel" aria-labelledby="tab-vlsm" hidden>
+      <div class="card vlsm-setup">
+        <div class="vlsm-setup__base">
+          <h2 class="card__title">Requisitos</h2>
+          <div class="field">
+            <label class="field__label" for="vlsm-base">Red base</label>
+            <input class="input input--lg mono" id="vlsm-base" type="text" autocomplete="off"
+                   autocapitalize="off" spellcheck="false" placeholder="192.168.10.0/24"
+                   aria-describedby="vlsm-base-error">
+            <p class="field__error" id="vlsm-base-error" aria-live="polite"></p>
+          </div>
+          <div class="presets">
+            <p class="field__label" id="presets-label">Ejemplos</p>
+            <div class="presets__list" role="group" aria-labelledby="presets-label">
+              <button class="chip" type="button" data-preset="oficina">Oficina pequeña</button>
+              <button class="chip" type="button" data-preset="examen">Ejercicio de examen</button>
+              <button class="chip" type="button" data-preset="campus">Campus /22</button>
+            </div>
+          </div>
+          <p class="explain">
+            Las subredes se ordenan de más a menos hosts y cada una recibe el bloque
+            potencia de 2 más pequeño que la cubre (hosts + red + broadcast). Los bloques
+            se colocan seguidos desde el inicio de la red base, así quedan alineados y sin huecos.
+          </p>
+        </div>
+
+        <div class="vlsm-setup__rows">
+          <div class="vrow vrow--head" aria-hidden="true">
+            <span>Nombre</span><span>Hosts</span><span></span>
+          </div>
+          <ol class="vrows" id="vlsm-rows"></ol>
+          <button class="btn btn--ghost" type="button" id="vlsm-add">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            Añadir subred
+          </button>
+        </div>
+      </div>
+      <div class="card results" id="vlsm-results"></div>
+    </section>
+
+    <!-- ============ Pestaña 3: Dividir ============ -->
+    <section class="panel" id="panel-dividir" role="tabpanel" aria-labelledby="tab-dividir" hidden>
+      <h2 class="sr-only">Dividir una red en subredes iguales</h2>
+      <form class="card split-form" id="split-form" novalidate>
+        <div class="field">
+          <label class="field__label" for="split-net">Red</label>
+          <input class="input input--lg mono" id="split-net" type="text" autocomplete="off"
+                 autocapitalize="off" spellcheck="false" placeholder="10.0.0.0/16"
+                 aria-describedby="split-net-error">
+          <p class="field__error" id="split-net-error" aria-live="polite"></p>
+        </div>
+        <fieldset class="field segmented">
+          <legend class="field__label">Dividir</legend>
+          <div class="segmented__options">
+            <label class="segmented__option">
+              <input type="radio" name="split-mode" value="count" checked>
+              <span>En N subredes</span>
+            </label>
+            <label class="segmented__option">
+              <input type="radio" name="split-mode" value="prefix">
+              <span>Por prefijo</span>
+            </label>
+          </div>
+        </fieldset>
+        <div class="field">
+          <label class="field__label" for="split-value" id="split-value-label">Número de subredes</label>
+          <input class="input input--lg mono" id="split-value" type="text" inputmode="numeric"
+                 autocomplete="off" spellcheck="false" aria-describedby="split-value-error">
+          <p class="field__error" id="split-value-error" aria-live="polite"></p>
+        </div>
+      </form>
+      <div class="card results" id="split-results"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <p>Miguel Ángel Alonso Valhondo · Calculadora de subredes IPv4</p>
+      <p>Los cálculos se hacen en tu navegador: no se envía ningún dato.</p>
+    </div>
+  </footer>
+
+  <!-- Texto de ayuda compartido por todos los valores copiables -->
+  <span id="copy-hint" hidden>Pulsa para copiar</span>
+  <!-- Región para anunciar avisos a lectores de pantalla ("Copiado", etc.) -->
+  <div class="sr-only" id="announcer" aria-live="polite"></div>
+
+  <script src="js/ipv4.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
