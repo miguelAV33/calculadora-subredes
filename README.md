@@ -6,7 +6,7 @@ planifica un direccionamiento VLSM a partir de una lista de subredes y divide un
 subredes iguales. Está hecha con HTML, CSS y JavaScript sin frameworks ni dependencias,
 con la lógica de red separada de la interfaz y cubierta por tests.
 
-**Demo:** https://tu-dominio.netlify.app/demo-calculadora-subredes/
+**Demo:** https://miguelangel-alonso.netlify.app/demo-calculadora-subredes/
 
 ![Pestaña Subred: 172.16.37.200/20 con resultados y vista binaria](docs/subred.png)
 
